@@ -1,0 +1,73 @@
+project:
+  type: website
+  output-dir: docs  #folder for github purposes
+
+website:
+
+# Title
+  title: "exam-01-epsy-8265"
+
+# Search
+  search: true
+
+# Reader Mode
+  reader-mode: false
+
+# Navigation
+  navbar:
+    left:
+      - href: index.qmd
+        icon: file-earmark-check
+        text: Answers
+      - href: assets/exam.pdf
+        icon: file-earmark
+        text: Questions
+      # - href: index.qmd
+      #   text: Page 3
+      # - href: index.qmd
+      #   text: Page 4
+      # - href: about.qmd
+      #   text: About
+    # right: 
+    #   - href: about.qmd
+    #     text: Find us on
+
+# logo  
+#    logo: "imgs/logo-seeds.jpg"
+#    logo-alt: "Alternative text
+
+# color
+    background: "#314451"
+    foreground: "#FFFFFF"
+
+    tools:
+      # - icon: twitter
+      #   href: https://twitter.com
+      # - icon: tiktok
+      #   href: https://tiktok.com
+      # - icon: facebook
+      #   href: https://facebook.com
+      # - icon: youtube
+      #   href: https://youtube.com
+      # - icon: instagram
+      #   href: https://instagram.com
+      - icon: github
+        href: https://github.com/vivas014/exam-01
+# footer
+  page-footer: 
+    border: true
+    left: "Copyright 2023, Pablo Vivas" 
+    # right: 
+    #   - icon: github
+    #     href: https://github.com/
+    #   - icon: twitter 
+    #     href: https://twitter.com/ 
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+
