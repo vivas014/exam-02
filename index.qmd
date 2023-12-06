@@ -1,5 +1,5 @@
 ---
-title: "Exam-01"
+title: "Exam-02"
 author: "Pablo Vivas"
 date: "`r Sys.Date()`"
 format:
@@ -16,7 +16,7 @@ format:
     fig-align: center
     df-print: tibble
     highlight-style: nord
-    output-file: exam-01-pablo-vivas.docx
+    output-file: exam-02-pablo-vivas.docx
 execute:
   warning: false
   error: false

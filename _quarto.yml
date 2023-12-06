@@ -5,7 +5,7 @@ project:
 website:
 
 # Title
-  title: "exam-01-epsy-8265"
+  title: "exam-02-epsy-8265"
 
 # Search
   search: true
@@ -37,7 +37,7 @@ website:
 #    logo-alt: "Alternative text
 
 # color
-    background: "#314451"
+    background: "#61834a"
     foreground: "#FFFFFF"
 
     tools:
@@ -52,7 +52,7 @@ website:
       # - icon: instagram
       #   href: https://instagram.com
       - icon: github
-        href: https://github.com/vivas014/exam-01
+        href: https://github.com/vivas014/exam-02
 # footer
   page-footer: 
     border: true
