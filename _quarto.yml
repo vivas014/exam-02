@@ -19,7 +19,7 @@ website:
       - href: index.qmd
         icon: file-earmark-check
         text: Answers
-      - href: assets/exam.pdf
+      - href: assets/exam-02.pdf
         icon: file-earmark
         text: Questions
       # - href: index.qmd
