@@ -45,8 +45,9 @@ data_sub = data |>
   select(str_c("pers", c("03", "07", 11, 13, 16, 26, 36)))
 ```
 
-
 ## a)
+
+The single-factor model using seven indicators is statistically identified. This because the model contains $14$ parameters $(\lambda_1,...,\lambda_7, \varepsilon_1, ..., \varepsilon_7)$ and the correlation matrix contains $\frac{7(7+1)}{2} = \frac{56}{2} = 28$ unique pieces of information, also known as degrees of freedom. Hence, we have more degrees of freedom than model parameters which results in the model being statistically identified. (We have $28-14 = 14$ *df* to spare 🥳)
 
 ## b)
 
@@ -57,6 +58,8 @@ mod_01 = '
 '
 
 cfa_01 = cfa(mod_01, data = data_sub)
+
+
 ```
 
 ## c)
