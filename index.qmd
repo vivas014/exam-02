@@ -28,8 +28,10 @@ theme: simplex
 #| label: set-up
 #| echo: false
 
+library(broom)
 library(gt)
 library(lavaan)
+library(psych)
 library(stringr)
 library(tidyverse)
 ```
@@ -47,40 +49,121 @@ data_sub = data |>
 
 ## a)
 
-The single-factor model using seven indicators is statistically identified. This because the model contains $14$ parameters $(\lambda_1,...,\lambda_7, \varepsilon_1, ..., \varepsilon_7)$ and the correlation matrix contains $\frac{7(7+1)}{2} = \frac{56}{2} = 28$ unique pieces of information, also known as degrees of freedom. Hence, we have more degrees of freedom than model parameters which results in the model being statistically identified. (We have $28-14 = 14$ *df* to spare 🥳)
+The single-factor model using seven indicators is statistically identified. This because the model contains $14$ parameters $(\lambda_1,...,\lambda_7, \varepsilon_1, ..., \varepsilon_7)$ and the correlation matrix contains $\frac{7(7+1)}{2} = \frac{56}{2} = 28$ unique pieces of information, also known as degrees of freedom. Hence, we have more degrees of freedom than model parameters which results in the model being statistically identified. (We have $28-14 = 14$ degrees of freedom to spare 🥳)
 
 ## b)
 
 ```{r}
-#| label: fit one factor cfa 
+#| label: tbl-fit-one-factor-cfa
+#| tbl-cap: Fit measures for one-factor model 
+
 mod_01 = '
   f1 =~ pers03 + pers07 + pers11 + pers13 + pers16 + pers26 + pers36
 '
 
 cfa_01 = cfa(mod_01, data = data_sub)
 
-
+fitMeasures(cfa_01) |> 
+  tidy() |>
+  mutate(
+    measure = names,
+    value = round(x, 2),
+    .keep = "unused") |> 
+  filter(measure %in% c("chisq", "pvalue", "cfi", "tli", "rmsea", "srmr")) |> 
+  gt() |> 
+  cols_width(
+    value ~  px(100)
+  )
 ```
+
+Given the results of @tbl-fit-one-factor-cfa, the model doesn't seem to fit the data. 
 
 ## c)
 
+```{r}
+residuals(cfa_01, type = "standardized")
+```
+
+```{r}
+modindices(cfa_01, sort = T)
+```
+
 ## d)
+
+```{r}
+mod_02 = '
+  f1 =~ pers03 + pers07 + pers11 + pers13 + pers16 + pers26 + pers36
+  pers16	~~	pers26
+  pers11	~~	pers16
+  pers16	~~	pers36
+  pers26	~~	pers36
+  pers11	~~	pers26
+  pers03	~~	pers13
+  pers11	~~	pers36
+  pers13	~~	pers16
+  pers13	~~	pers26
+  pers03	~~	pers36
+'
+
+cfa_02 = cfa(mod_02, data = data_sub)
+
+fitMeasures(cfa_02) |> 
+  tidy() |>
+  mutate(
+    measure = names,
+    value = round(x, 2),
+    .keep = "unused") |> 
+  filter(measure %in% c("chisq", "pvalue", "cfi", "tli", "rmsea", "srmr")) |> 
+  gt() |> 
+  cols_width(
+    value ~  px(100)
+  )
+```
+
+```{r}
+anova(cfa_01, cfa_02)
+```
 
 ## e)
 
 # Question 2
 
-```{r}
-#| label: fit efa all data
-
-efa_01 = efa()
-```
-
 ## a)
+
+```{r}
+cor_mat = data |> 
+  drop_na() |> 
+  cor()
+
+cortest.bartlett(cor_mat, n = nrow(data |> drop_na()))
+
+KMO(data |> drop_na())
+```
 
 ## b)
 
+```{r}
+fa.parallel(data, fm = "ml", n.obs = nrow(data |> drop_na()))
+
+scree(data |> drop_na())
+
+efa_01 = fa(cor_mat, 
+            nfactors = 6, 
+            n.obs = nrow(data |> drop_na()), 
+            fm="ml", 
+            rotate = "none")
+```
+
 ## c)
+
+```{r}
+efa_02 = fa(cor_mat, 
+            nfactors = 6, 
+            n.obs = nrow(data |> drop_na()), 
+            fm="ml", 
+            rotate = "promax")
+```
+
 
 ## d)
 
