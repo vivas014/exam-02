@@ -32,6 +32,7 @@ library(broom)
 library(gt)
 library(lavaan)
 library(psych)
+library(semPlot)
 library(stringr)
 library(tidyverse)
 ```
@@ -76,7 +77,7 @@ fitMeasures(cfa_01) |>
   )
 ```
 
-Given the results of @tbl-fit-one-factor-cfa, the model doesn't seem to fit the data. 
+Given the results of @tbl-fit-one-factor-cfa, the model doesn't seem to fit the data. Hence, no interpretation of the parameter estimates is needed.
 
 ## c)
 
@@ -84,13 +85,20 @@ Given the results of @tbl-fit-one-factor-cfa, the model doesn't seem to fit the 
 residuals(cfa_01, type = "standardized")
 ```
 
+We see huge standardized residuals, specifically in the correlation estimates of `pers36` and the other items. This is probably due to the wording of this question and its relationship to the other items (they may be correlated). Also, the biggest misfit is happening in the estimate for the correlation between `per26` and `per16`, more than 8 units off. However, it is unclear why is this happening with this two items that seem somewhat different (`per16`:generates enthusiasm in others, `per26`: assertive). 
+
 ```{r}
 modindices(cfa_01, sort = T)
 ```
 
+As suspected, adding some correlation terms between the error component of the items will improve the fit in the model. This makes sense as some of the items are very similar and probably is easy to understand within the personality theories. Given that we have only $14$ degrees of freedom left, I will add $10$ correlation terms as specified in the table above. This because I am interested in maintaining an over-identified model while still be able to asses the fit of it.
+
 ## d)
 
 ```{r}
+#| label: tbl-fit-one-factor-cfa-corr
+#| tbl-cap: Fit measures for one-factor model with correlated errors
+
 mod_02 = '
   f1 =~ pers03 + pers07 + pers11 + pers13 + pers16 + pers26 + pers36
   pers16	~~	pers26
@@ -120,11 +128,21 @@ fitMeasures(cfa_02) |>
   )
 ```
 
+Given the results of @tbl-fit-one-factor-cfa-corr, we can claim that the data does fit the specified one-factor model with some correlated errors. Comparing this table with the results of @tbl-fit-one-factor-cfa, it is clear the improvement of the original model fitted originally. Also, it is worth mentioning that these two models are nested (the model with no correlation terms is nested into the model with correlation error terms). Because of this fact, we can compare the fit of this two nested models through a $\chi^2$ test. 
+
 ```{r}
 anova(cfa_01, cfa_02)
 ```
 
+The results on this test point out what we found with the goodness of fit indexes: the second model does a better job in describing the relationship between the 7 items we analyzed. From a information-based criteria, the second model also has smaller values of AIC and BIC. 
+
 ## e)
+
+```{r}
+summary(cfa_02, standardized=T)
+```
+
+With the above information we can claim that these items are measuring a latent factor that I've decided to name `active worker`. It is worth mentioning that some of the items are measuring the same aspect of this latent variable, that is why some correlated errors are introduced in the model.
 
 # Question 2
 
@@ -140,21 +158,32 @@ cortest.bartlett(cor_mat, n = nrow(data |> drop_na()))
 KMO(data |> drop_na())
 ```
 
+Given the results of this two test, we can conclude that the data is suitable for factor analysis. First, the Bartlett’s test of sphericity provides evidence that our correlation matrix is different from the identity matrix and that there is an intercorrelation between variables that can be explained by common factors. Then, the KMO provides evidence that our data suitable for this analysis, with an overall measure of sampling adequacy of $0.84$, which is great
+
 ## b)
 
 ```{r}
 fa.parallel(data, fm = "ml", n.obs = nrow(data |> drop_na()))
 
 scree(data |> drop_na())
+```
 
+Both the parallel analysis and the scree-plot suggest that the number of factors to be extracted is $6$.
+
+```{r}
 efa_01 = fa(cor_mat, 
             nfactors = 6, 
             n.obs = nrow(data |> drop_na()), 
-            fm="ml", 
+            fm = "ml", 
             rotate = "none")
+
+summary(efa_01)
 ```
+Based on the goodness-of-fit indices, this model seems to be doing a decent job in explaining the intercorrelation between the items. Even thought the $\chi^2$ test is significant, the other measures to evaluate how good the data fits the model are withing acceptable ranges.
 
 ## c)
+
+Because these items are similar, I would prefer an oblique rotation to allow correlation between the latent factors.
 
 ```{r}
 efa_02 = fa(cor_mat, 
@@ -162,17 +191,157 @@ efa_02 = fa(cor_mat,
             n.obs = nrow(data |> drop_na()), 
             fm="ml", 
             rotate = "promax")
+
+efa_02$loadings
 ```
 
+We see some of the largest factor loading to be negative. I attribute this to the nature of the items in this test. Given that these items are trying to measure personality traits, it is tenable to have items with negative loads on some of the traits and still have a meaningful interpretation. Take, for example, item 8 `careless`. A negative load of this item on some of the latent variable would indicate that the person is not careless, which means that this worker is careful. In other words, these items may be in reverse coding. 
+
+With the loading of the rotated solution, I can provide the following interpretation of the latent factors:
+
+- Factor 1 (Calmn): This factor might capture emotional stability and calmness, with items like "emotionally stable," "calm in tense situations," and "relaxed" showing high loadings.
+- Factor 2 (Reliable): Indicated by high loadings on items like "does a thorough job," "reliable," and "perseveres," this factor likely measures conscientiousness, work ethic, and reliability.
+- Factor 3 (Worry): This factor might capture worry, with items like "depressed," "not relaxed," and "worries" showing high loadings.
+- Factor 4 (Creative): Suggested by high loadings on "original," "imaginative," and "values artistic experiences," this factor seems to represent openness to experience and creativity.
+- Factor 5 (Trustworthy): Indicated by high loadings on items like "trusting," "considerate," and "co-operative," this factor likely measures to what extent the worker is trustworthy.
+- Factor 6 (Leadership): This factor might be related to assertiveness and leadership qualities, as indicated by items like "assertive," "generates enthusiasm in others," and "sophisticated in art & music" having high loadings.
 
 ## d)
 
+```{r}
+#| label: fig-plot-com
+#| fig-cap: Communalities 
+
+efa_02$communalities |> 
+  tidy() |> 
+  mutate(
+    item = parse_number(names),
+    communality = x,
+    .keep = "unused"
+  ) |> 
+  ggplot(aes(x = item, y = communality)) +
+  geom_col(fill = "tomato4") +
+  ylim(c(0,1)) +
+  theme_bw()
+```
+
+
+Low communalities in a factor analysis, like the ones observed in @fig-plot-com (specifically, pers10, pers12, pers17, pers35), suggest that these items are not well explained by the underlined extracted factors. In this context, this can mean that these specific items do not align well with the underlying constructs we are trying to measure with this instrument. In other words, these items might be measuring aspects of personality that are not captured by the six factors we've identified, or they may be less relevant or inconsistent in the context of the other items and factors in this questionnaire.
+
 ## e)
 
+Factor Analysis (FA) is more appropriate for this dataset than Principal Component Analysis (PCA) because FA seeks to identify latent variables that explain observed variables, which is suitable for psychological and personality data, like the one we have. FA models the underlying structure that explains correlations between items, focusing on shared variance. In contrast, PCA maximizes total variance, treating all variance as equally important. PCA would provide a different perspective by combining items into components based on total variance, potentially mixing measurement and error variances, which might not be as meaningful for understanding underlying personality constructs.
+
 ## f)
+
+```{r}
+data |> 
+  drop_na() |> 
+  skimr::skim() |> 
+  as_tibble() |> 
+  select(skim_variable, numeric.sd) |> 
+  sample_n(10) |> 
+  gt()
+```
+
+Performing an exploratory factor analysis using the covariance matrix is reasonable for this dataset, as the items (pers01 to pers44) are on the same 5-point scale and have similar standard deviations (and hence variances). This similarity in scaling and variance allows for a meaningful comparison of the covariance among items. The results of the factor analysis using the covariance matrix would focus more directly on the shared variances in their original scale, potentially providing insights that align more closely with the actual variance observed in the data. In conclusion, the result will be very similar.
 
 # Question 3
 
 ## a)
 
+By definition of our model, we have the following:
+
+$$
+\hat{\Sigma} = \hat{\Lambda}\hat{\Lambda}^{t} + \hat{\Psi}
+$$
+
+Using linear algebra, we can compute the fitted correlation matrix as follows:
+
+$$
+\begin{align*}
+\hat{\Sigma} &= \begin{bmatrix}
+0.4 & 0.8\\ 
+0.7 & -0.4\\ 
+0.1 & 0.7\\ 
+0.5 & -0.7\\ 
+0.5 & -0.3\\ 
+0.5 & 0.2 
+\end{bmatrix} \cdot \begin{bmatrix}
+0.4 & 0.8\\ 
+0.7 & -0.4\\ 
+0.1 & 0.7\\ 
+0.5 & -0.7\\ 
+0.5 & -0.3\\ 
+0.5 & 0.2 
+\end{bmatrix}^t + \begin{bmatrix}
+.20 & 0 & 0 & 0 & 0 & 0 \\
+0 & .35 & 0 & 0 & 0 & 0 \\
+0 & 0 & .50 & 0 & 0 & 0 \\
+0 & 0 & 0 & .26 & 0 & 0 \\
+0 & 0 & 0 & 0 & .66 & 0 \\
+0 & 0 & 0 & 0 & 0 & .80
+\end{bmatrix} \\
+\\
+&= \begin{bmatrix}
+(0.4 \times 0.4 + 0.8 \times 0.8) & (0.4 \times 0.7 + 0.8 \times -0.4) & \cdots & (0.4 \times 0.5 + 0.8 \times 0.2) \\
+(0.7 \times 0.4 + -0.4 \times 0.8) & (0.7 \times 0.7 + -0.4 \times -0.4) & \cdots & (0.7 \times 0.5 + -0.4 \times 0.2) \\
+\\
+\vdots & \vdots & \ddots & \vdots \\
+\\
+(0.5 \times 0.4 + 0.2 \times 0.8) & (0.5 \times 0.7 + 0.2 \times -0.4) & \cdots & (0.5 \times 0.5 + 0.2 \times 0.2) \\
+\end{bmatrix}\\ &+ \begin{bmatrix}
+.20 & 0 & 0 & 0 & 0 & 0 \\
+0 & .35 & 0 & 0 & 0 & 0 \\
+0 & 0 & .50 & 0 & 0 & 0 \\
+0 & 0 & 0 & .26 & 0 & 0 \\
+0 & 0 & 0 & 0 & .66 & 0 \\
+0 & 0 & 0 & 0 & 0 & .80
+\end{bmatrix} \\
+\\
+&= \begin{bmatrix}
+0.80 & -0.04 & 0.60 & -0.36 & -0.04 & 0.32 \\
+-0.04 & 0.65 & -0.07 & 0.49 & 0.53 & 0.38 \\
+0.60 & -0.07 & 0.50 & -0.44 & -0.16 & 0.18 \\
+-0.36 & 0.49 & -0.44 & 0.74 & 0.66 & 0.14 \\
+-0.04 & 0.53 & -0.16 & 0.66 & 0.34 & 0.26 \\
+0.32 & 0.38 & 0.18 & 0.14 & 0.26 & 0.29 \\
+\end{bmatrix} + \begin{bmatrix}
+.20 & 0 & 0 & 0 & 0 & 0 \\
+0 & .35 & 0 & 0 & 0 & 0 \\
+0 & 0 & .50 & 0 & 0 & 0 \\
+0 & 0 & 0 & .26 & 0 & 0 \\
+0 & 0 & 0 & 0 & .66 & 0 \\
+0 & 0 & 0 & 0 & 0 & .80
+\end{bmatrix} \\
+\\
+&= \begin{bmatrix}
+1.00 & -0.04 & 0.60 & -0.36 & -0.04 & 0.32 \\
+-0.04 & 1.00 & -0.21 & 0.63 & 0.47 & 0.20 \\
+0.60 & -0.21 & 1.00 & -0.44 & -0.16 & 0.18 \\
+-0.36 & 0.63 & -0.44 & 1.00 & 0.46 & 0.06 \\
+-0.04 & 0.47 & -0.16 & 0.46 & 1.00 & 0.14 \\
+0.32 & 0.20 & 0.18 & 0.06 & 0.14 & 1.00 \\
+\end{bmatrix} 
+\end{align*}
+$$
+
 ## b)
+
+For each item, the communality can be computed as follows:
+
+- Variable 1: $(0.4)^2 + (0.8)^2 = 0.80$
+- Variable 2: $(0.7)^2 + (-0.4)^2 = 0.65$
+- Variable 3: $(0.1)^2 + (0.7)^2 = 0.50$
+- Variable 4: $(0.5)^2 + (-0.7)^2 = 0.74$
+- Variable 5: $(0.5)^2 + (-0.3)^2 = 0.34$
+- Variable 6: $(0.4)^2 + (-0.2)^2 = 0.20$
+
+The uniqueness can be computed as the complement of the communality, this because the correlation matrix was used to perform the factor analysis:
+
+- Variable 1: $1 - 0.80 = 0.20$
+- Variable 2: $1 - 0.65 = 0.35$
+- Variable 3: $1 - 0.50 = 0.50$
+- Variable 4: $1 - 0.74 = 0.26$
+- Variable 5: $1 - 0.34 = 0.66$
+- Variable 6: $1 - 0.20 = 0.80$
