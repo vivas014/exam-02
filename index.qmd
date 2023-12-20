@@ -50,7 +50,7 @@ data_sub = data |>
 
 ## a)
 
-The single-factor model using seven indicators is statistically identified. This because the model contains $14$ parameters $(\lambda_1,...,\lambda_7, \varepsilon_1, ..., \varepsilon_7)$ and the correlation matrix contains $\frac{7(7+1)}{2} = \frac{56}{2} = 28$ unique pieces of information, also known as degrees of freedom. Hence, we have more degrees of freedom than model parameters which results in the model being statistically identified. (We have $28-14 = 14$ degrees of freedom to spare 🥳)
+A single-factor model using seven indicators is statistically identified. This because the model contains $14$ parameters $(\lambda_1,...,\lambda_7, \varepsilon_1, ..., \varepsilon_7)$ and the correlation matrix contains $\frac{7(7+1)}{2} = \frac{56}{2} = 28$ unique pieces of information, also known as degrees of freedom. Hence, we have more degrees of freedom than model parameters which results in the model being statistically identified. (We have $28-14 = 14$ degrees of freedom to spare 🥳). Also, following the three-indicator rule (covered in class), there are more than three indicators per latent variable. 
 
 ## b)
 
@@ -73,7 +73,7 @@ fitMeasures(cfa_01) |>
   filter(measure %in% c("chisq", "pvalue", "cfi", "tli", "rmsea", "srmr")) |> 
   gt() |> 
   cols_width(
-    value ~  px(100)
+    everything() ~  px(100)
   )
 ```
 
@@ -124,17 +124,17 @@ fitMeasures(cfa_02) |>
   filter(measure %in% c("chisq", "pvalue", "cfi", "tli", "rmsea", "srmr")) |> 
   gt() |> 
   cols_width(
-    value ~  px(100)
+    everything() ~  px(100)
   )
 ```
 
-Given the results of @tbl-fit-one-factor-cfa-corr, we can claim that the data does fit the specified one-factor model with some correlated errors. Comparing this table with the results of @tbl-fit-one-factor-cfa, it is clear the improvement of the original model fitted originally. Also, it is worth mentioning that these two models are nested (the model with no correlation terms is nested into the model with correlation error terms). Because of this fact, we can compare the fit of this two nested models through a $\chi^2$ test. 
+Given the results of @tbl-fit-one-factor-cfa-corr, we can claim that the data does fit the specified one-factor model with some correlated errors. Comparing this table with the results of @tbl-fit-one-factor-cfa, it is clear the improvement of the original model fitted originally. Also, it is worth mentioning that these two models are nested (the model with no correlation terms is nested into the model with correlation error terms). Because of this fact, we can compare the fit of thess two nested models through a $\chi^2$ test. 
 
 ```{r}
 anova(cfa_01, cfa_02)
 ```
 
-The results on this test point out what we found with the goodness of fit indexes: the second model does a better job in describing the relationship between the 7 items we analyzed. From a information-based criteria, the second model also has smaller values of AIC and BIC. 
+The results of this test point out what we found with the goodness of fit indexes: the second model does a better job in describing the relationship between the 7 items we analyzed. Also, from a information-based criteria, the second model also has smaller values of AIC and BIC. 
 
 ## e)
 
@@ -179,7 +179,7 @@ efa_01 = fa(cor_mat,
 
 summary(efa_01)
 ```
-Based on the goodness-of-fit indices, this model seems to be doing a decent job in explaining the intercorrelation between the items. Even thought the $\chi^2$ test is significant, the other measures to evaluate how good the data fits the model are withing acceptable ranges.
+Based on the goodness-of-fit indices, this model seems to be doing a decent job in explaining the intercorrelation between the items. Even thought the $\chi^2$ test is significant, the other measures to evaluate how good the data fits the model are withing acceptable ranges (RMSA = 0.04, TLI = 0.846, RMSEA = 0.046).
 
 ## c)
 
@@ -230,7 +230,7 @@ Low communalities in a factor analysis, like the ones observed in @fig-plot-com 
 
 ## e)
 
-Factor Analysis (FA) is more appropriate for this dataset than Principal Component Analysis (PCA) because FA seeks to identify latent variables that explain observed variables, which is suitable for psychological and personality data, like the one we have. FA models the underlying structure that explains correlations between items, focusing on shared variance. In contrast, PCA maximizes total variance, treating all variance as equally important. PCA would provide a different perspective by combining items into components based on total variance, potentially mixing measurement and error variances, which might not be as meaningful for understanding underlying personality constructs.
+Factor Analysis (FA) is more appropriate for this dataset than Principal Component Analysis (PCA) because FA seeks to identify latent variables that explain observed variables, which is suitable for psychological and personality data, like the one we have. FA models the underlying structure that explains correlations between items, focusing on shared variance. In contrast, PCA maximizes total variance, treating all variance as equally important. PCA would provide a different perspective by combining items into components based on total variance, potentially mixing measurement and error variances, which might not be as meaningful for understanding underlying personality constructs. However, it all depends on the objective of the research. 
 
 ## f)
 
